@@ -1,0 +1,18 @@
+menu "BSP Configuration"
+
+    choice BSP_HW_REV
+        prompt "Select BSP hardware board"
+        default BSP_HW_REV_ESP32C3_DEVKITC
+        help
+            Selection of hardware on which this firmware will be running on. Note that ESP32-C6-DEVKITC doesn't support
+            the LCD.
+
+        config BSP_HW_REV_ESP32C3_DEVKITC
+            bool "ESP32-C6-DEVKITC"
+
+        config BSP_HW_REV_LILYGO_TDISPLAY_S3
+            bool "Liligo T-Display-S3 board"
+
+    endchoice
+
+endmenu

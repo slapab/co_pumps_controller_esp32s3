@@ -1,0 +1,39 @@
+dependencies:
+  espressif/ds18b20:
+    component_hash: d1e277cbc765de715ad2a14b1f61d4e9415bf9e3ebde0da6b3f577164ddd7fe4
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 0.1.0
+  espressif/esp_lcd_touch:
+    component_hash: d4d8f2dc33205797169a97a02e0d89a8982f59fe0509129b54422052b8522f59
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.1.1
+  espressif/esp_lcd_touch_cst816s:
+    component_hash: 270bd7df3a2a5cffa3a626c4709fc03237d83fd9daa6fb70c833a2f1875f0f68
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.0.3
+  espressif/onewire_bus:
+    component_hash: 4da8596055cfe301370c0bb2aa716e65dc3b7148e64f84bcc9f76693b3a32aa9
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.0.1
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.1.2
+  lvgl/lvgl:
+    component_hash: 51022b16bce6ee90f54a8bd21cd6d497d886916899b577b1bebb9125b91e23fc
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 8.3.10
+manifest_hash: bd2580b1f6e4e0abf0cd958aae4271505d4867bb6848de042b567d7469e1e91e
+target: esp32s3
+version: 1.0.0

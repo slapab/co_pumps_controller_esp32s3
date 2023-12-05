@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"bsp.h": "c",
+			"gpio_types.h": "c",
+			"temperatures.h": "c",
+			"cstdint": "cpp",
+			"cstring": "cpp",
+			"typeinfo": "cpp",
+			"lv_hal.h": "c",
+			"regex": "c"
+		},
+		"files.insertFinalNewline": true,
+		"files.trimFinalNewlines": true,
+		"cpp-check-lint.cppcheck.--enable": false,
+		"clangd.arguments": [
+			// "-log=verbose",
+			"-pretty",
+			"--background-index",
+			"--compile-commands-dir=${workspaceFolder}/build"
+		],
+		"C_Cpp.intelliSenseEngine": "disabled",
+		"C_Cpp.errorSquiggles": "disabled",
+	}
+}

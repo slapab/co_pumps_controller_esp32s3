@@ -1,0 +1,6 @@
+CompileFlags:
+  Remove: [-f*, -std=gnu++*, -mlongcalls]
+  Add: [-std=gnu++20]
+
+Diagnostics:
+  Suppress: [drv_invalid_riscv_arch_name, drv_unknown_argumen, drv_invalid_riscv_arch_name]
