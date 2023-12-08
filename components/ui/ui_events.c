@@ -3,8 +3,7 @@
 // LVGL version: 8.3.6
 // Project name: SquareLine_Project
 
-#include "../ui.h"
+#include "ui.h"
 
-void ui_comp_HomePumpStatusComponent_create_hook( lv_obj_t * comp)
-{
-}
+/* Include implementation */
+#include "screen_home_events.c"

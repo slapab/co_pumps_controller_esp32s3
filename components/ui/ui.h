@@ -13,15 +13,19 @@ extern "C" {
     #include "lvgl.h"
 
 #include "ui_helpers.h"
+#include "components/ui_comp.h"
+#include "components/ui_comp_hook.h"
 #include "ui_events.h"
 // SCREEN: ui_ScreenHome
 void ui_ScreenHome_screen_init(void);
 extern lv_obj_t *ui_ScreenHome;
+void ui_event_TabView1( lv_event_t * e);
 extern lv_obj_t *ui_TabView1;
 extern lv_obj_t *ui_tabhome;
-extern lv_obj_t *ui_Panel1;
-extern lv_obj_t *ui_Label1;
-extern lv_obj_t *ui_Panel2;
+void ui_event_homePumpStatusComponentFloor0_HomePumpStatusComponent( lv_event_t * e);
+extern lv_obj_t *ui_homePumpStatusComponentFloor0;
+void ui_event_homePumpStatusComponentFloor1_HomePumpStatusComponent( lv_event_t * e);
+extern lv_obj_t *ui_homePumpStatusComponentFloor1;
 extern lv_obj_t *ui_tabsettings;
 extern lv_obj_t *ui_tabmanual;
 extern lv_obj_t *ui____initial_actions0;

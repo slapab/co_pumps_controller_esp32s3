@@ -3,4 +3,4 @@ CompileFlags:
   Add: [-std=gnu++20]
 
 Diagnostics:
-  Suppress: [drv_invalid_riscv_arch_name, drv_unknown_argumen, drv_invalid_riscv_arch_name]
+  Suppress: [drv_invalid_riscv_arch_name, drv_unknown_argumen, drv_invalid_riscv_arch_name, drv_argument_not_allowed_with]

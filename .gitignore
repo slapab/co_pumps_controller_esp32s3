@@ -1,2 +1,5 @@
 **/build
 **/.cache
+**/autosave
+**/backup
+gen_tools/SquareLineStudio/gen_project

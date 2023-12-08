@@ -12,11 +12,13 @@
 // SCREEN: ui_ScreenHome
 void ui_ScreenHome_screen_init(void);
 lv_obj_t *ui_ScreenHome;
+void ui_event_TabView1( lv_event_t * e);
 lv_obj_t *ui_TabView1;
 lv_obj_t *ui_tabhome;
-lv_obj_t *ui_Panel1;
-lv_obj_t *ui_Label1;
-lv_obj_t *ui_Panel2;
+void ui_event_homePumpStatusComponentFloor0_HomePumpStatusComponent( lv_event_t * e);
+lv_obj_t *ui_homePumpStatusComponentFloor0;
+void ui_event_homePumpStatusComponentFloor1_HomePumpStatusComponent( lv_event_t * e);
+lv_obj_t *ui_homePumpStatusComponentFloor1;
 lv_obj_t *ui_tabsettings;
 lv_obj_t *ui_tabmanual;
 lv_obj_t *ui____initial_actions0;
@@ -32,13 +34,32 @@ lv_obj_t *ui____initial_actions0;
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
+void ui_event_TabView1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      onTabChangedEventImpl( e );
+}
+}
+void ui_event_homePumpStatusComponentFloor0_HomePumpStatusComponent( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+if ( event_code == LV_EVENT_CLICKED) {
+      floor0ClickedEventImpl( e );
+}
+}
+void ui_event_homePumpStatusComponentFloor1_HomePumpStatusComponent( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+if ( event_code == LV_EVENT_CLICKED) {
+      floor1ClickedEventImpl( e );
+}
+}
 
 ///////////////////// SCREENS ////////////////////
 
 void ui_init( void )
-{
+{LV_EVENT_GET_COMP_CHILD = lv_event_register_id();
+
 lv_disp_t *dispp = lv_disp_get_default();
-lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
+lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), true, LV_FONT_DEFAULT);
 lv_disp_set_theme(dispp, theme);
 ui_ScreenHome_screen_init();
 ui____initial_actions0 = lv_obj_create(NULL);

@@ -11,15 +11,15 @@
 #include "lvgl.h"
 #include "bsp.h"
 #include "touch_drv.h"
+#include "display_ui_c_export.h"
 #include "ui.h"
 
 #include <esp_log.h>
-#define TAG "display"
+#define TAG "disp_drv"
 
 #define EXAMPLE_LVGL_TASK_STACK_SIZE   (4u * 1024u)
 #define EXAMPLE_LVGL_TASK_PRIORITY     2u
-/* A little above 60Hz */
-#define EXAMPLE_LVGL_TASK_INTERVAL_MS UINT32_C(16)
+
 
 #define EXAMPLE_LCD_BK_LIGHT_ON_LEVEL  1
 #define EXAMPLE_LCD_BK_LIGHT_OFF_LEVEL !EXAMPLE_LCD_BK_LIGHT_ON_LEVEL
@@ -69,7 +69,7 @@ static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
 static void my_disp_flush_lvgl_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p);
 static void lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data);
 static void example_increase_lvgl_tick(void* arg);
-static void example_lvgl_port_task(void *arg);
+// static void example_lvgl_port_task(void *arg);
 
 /* Contains internal graphic buffer(s) called draw buffer(s) */
 static lv_disp_draw_buf_t disp_buf;
@@ -78,8 +78,6 @@ static lv_disp_drv_t disp_drv;
 /* Input LVGL device driver */
 static lv_indev_drv_t indev_drv;
 
-/* LVGL API is not thread save, to need to implement access (screens) by the mutex */
-static SemaphoreHandle_t lvgl_mutex = NULL;
 /* LVGL Task handle */
 static TaskHandle_t lvgl_task = NULL;
 
@@ -159,30 +157,12 @@ esp_err_t display_drv_init(void) {
     err = ESP_ERROR_CHECK_WITHOUT_ABORT(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     err = ESP_ERROR_CHECK_WITHOUT_ABORT(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * UINT64_C(1000)));
 
-    /* Create mutex for LVGL access */
-    lvgl_mutex = xSemaphoreCreateRecursiveMutex();
-    err = ESP_ERROR_CHECK_WITHOUT_ABORT((NULL == lvgl_mutex) ? ESP_ERR_NO_MEM : ESP_OK);
-
     /* Create the LVGL task. */
     if (ESP_OK == err) {
-        xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, disp, EXAMPLE_LVGL_TASK_PRIORITY, &lvgl_task);
+        xTaskCreate(display_ui_task, "LVGL-UI", EXAMPLE_LVGL_TASK_STACK_SIZE, disp, EXAMPLE_LVGL_TASK_PRIORITY, &lvgl_task);
     }
 
     return err;
-}
-
-bool display_drv_lock(const uint32_t timeout_ticks) {
-    bool res = false;
-    if (NULL != lvgl_mutex) {
-        res = (pdTRUE == xSemaphoreTakeRecursive(lvgl_mutex, timeout_ticks));
-    }
-    return res;
-}
-
-void display_drv_unlock(void) {
-    if (NULL != lvgl_mutex) {
-        xSemaphoreGiveRecursive(lvgl_mutex);
-    }
 }
 
 static void config_lcd_bl() {
@@ -331,73 +311,73 @@ static void example_increase_lvgl_tick(void* arg) {
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
 }
 
-static void example_lvgl_port_task(void *arg)
-{
-    lv_disp_t *disp = (lv_disp_t*)arg;
-    static lv_style_t style;
-    lv_style_init(&style);
+// static void example_lvgl_port_task(void *arg)
+// {
+//     lv_disp_t *disp = (lv_disp_t*)arg;
+//     static lv_style_t style;
+//     lv_style_init(&style);
 
-    ESP_LOGI(TAG, "Starting LVGL task");
-    uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_INTERVAL_MS;
-    uint32_t t_slicking_tp = UINT32_C(0);
+//     ESP_LOGI(TAG, "Starting LVGL task");
+//     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_INTERVAL_MS;
+//     uint32_t t_slicking_tp = UINT32_C(0);
 
-    ui_init();
+//     ui_init();
 
-    bool display_sth = false;
-    while (true) {
-        // Lock the mutex due to the LVGL APIs are not thread-safe
-        if ((xTaskGetTickCount() - t_slicking_tp) >= pdMS_TO_TICKS(task_delay_ms)) {
-            t_slicking_tp = xTaskGetTickCount();
-            if (true == display_drv_lock(portMAX_DELAY)) {
-                task_delay_ms = lv_timer_handler();
-                // Release the mutex
-                display_drv_unlock();
+//     bool display_sth = false;
+//     while (true) {
+//         // Lock the mutex due to the LVGL APIs are not thread-safe
+//         if ((xTaskGetTickCount() - t_slicking_tp) >= pdMS_TO_TICKS(task_delay_ms)) {
+//             t_slicking_tp = xTaskGetTickCount();
+//             if (true == display_drv_lock(portMAX_DELAY)) {
+//                 task_delay_ms = lv_timer_handler();
+//                 // Release the mutex
+//                 display_drv_unlock();
 
-                if (true == display_sth) {
-                    display_sth = false;
-                    /* Create Screen object and load it (make it as active) */
-                    lv_obj_t *scr = lv_disp_get_scr_act(disp);
-                    if (NULL == scr) {
-                        lv_obj_t* scr = lv_obj_create(NULL);
-                        lv_scr_load(scr);
-                    }
+//                 if (true == display_sth) {
+//                     display_sth = false;
+//                     /* Create Screen object and load it (make it as active) */
+//                     lv_obj_t *scr = lv_disp_get_scr_act(disp);
+//                     if (NULL == scr) {
+//                         lv_obj_t* scr = lv_obj_create(NULL);
+//                         lv_scr_load(scr);
+//                     }
 
 
-                    ESP_LOGI(TAG, "Created some object");
-                    /*Set a background color and a radius*/
-                    lv_style_set_radius(&style, 5);
-                    lv_style_set_bg_opa(&style, LV_OPA_COVER);
-                    lv_style_set_bg_color(&style, lv_palette_lighten(LV_PALETTE_GREY, 1));
+//                     ESP_LOGI(TAG, "Created some object");
+//                     /*Set a background color and a radius*/
+//                     lv_style_set_radius(&style, 5);
+//                     lv_style_set_bg_opa(&style, LV_OPA_COVER);
+//                     lv_style_set_bg_color(&style, lv_palette_lighten(LV_PALETTE_GREY, 1));
 
-                    /*Add a shadow*/
-                    lv_style_set_shadow_width(&style, 55);
-                    lv_style_set_shadow_color(&style, lv_palette_main(LV_PALETTE_BLUE));
-                    // lv_style_set_shadow_ofs_x(&style, 10);
-                    // lv_style_set_shadow_ofs_y(&style, 20);
+//                     /*Add a shadow*/
+//                     lv_style_set_shadow_width(&style, 55);
+//                     lv_style_set_shadow_color(&style, lv_palette_main(LV_PALETTE_BLUE));
+//                     // lv_style_set_shadow_ofs_x(&style, 10);
+//                     // lv_style_set_shadow_ofs_y(&style, 20);
 
-                    /*Create an object with the new style*/
-                    lv_obj_t * obj = lv_obj_create(scr);
-                    lv_obj_add_style(obj, &style, 0);
-                    lv_obj_set_size(obj, 70, 70);
-                    lv_obj_center(obj);
+//                     /*Create an object with the new style*/
+//                     lv_obj_t * obj = lv_obj_create(scr);
+//                     lv_obj_add_style(obj, &style, 0);
+//                     lv_obj_set_size(obj, 70, 70);
+//                     lv_obj_center(obj);
 
-                    lv_obj_t* btn = lv_btn_create(scr);
-                    lv_obj_t *lbl = lv_label_create(btn);
-                    lv_label_set_text_static(lbl, "Test");
-                    lv_obj_set_style_text_font(lbl, &lv_font_montserrat_14, 0);
-                    // lv_obj_align(btn, LV_ALIGN_BOTTOM_LEFT, 30, -30);
-                    lv_obj_set_pos(btn, 70, 70);
-                }
-            }
-        }
+//                     lv_obj_t* btn = lv_btn_create(scr);
+//                     lv_obj_t *lbl = lv_label_create(btn);
+//                     lv_label_set_text_static(lbl, "Test");
+//                     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_14, 0);
+//                     // lv_obj_align(btn, LV_ALIGN_BOTTOM_LEFT, 30, -30);
+//                     lv_obj_set_pos(btn, 70, 70);
+//                 }
+//             }
+//         }
 
-        if (task_delay_ms > EXAMPLE_LVGL_TASK_INTERVAL_MS) {
-            task_delay_ms = EXAMPLE_LVGL_TASK_INTERVAL_MS;
-            vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
-        } else if (0u == task_delay_ms) {
-            continue;
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
-        }
-    }
-}
+//         if (task_delay_ms > EXAMPLE_LVGL_TASK_INTERVAL_MS) {
+//             task_delay_ms = EXAMPLE_LVGL_TASK_INTERVAL_MS;
+//             vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+//         } else if (0u == task_delay_ms) {
+//             continue;
+//         } else {
+//             vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+//         }
+//     }
+// }

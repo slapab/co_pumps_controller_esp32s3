@@ -18,35 +18,29 @@ lv_obj_clear_flag( ui_TabView1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
 
 ui_tabhome = lv_tabview_add_tab(ui_TabView1, "Home");
+lv_obj_set_flex_flow(ui_tabhome,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_tabhome, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
 
-ui_Panel1 = lv_obj_create(ui_tabhome);
-lv_obj_set_width( ui_Panel1, 100);
-lv_obj_set_height( ui_Panel1, 50);
-lv_obj_set_x( ui_Panel1, -102 );
-lv_obj_set_y( ui_Panel1, -34 );
-lv_obj_set_align( ui_Panel1, LV_ALIGN_CENTER );
-lv_obj_set_flex_flow(ui_Panel1,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Panel1, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_END);
-lv_obj_clear_flag( ui_Panel1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_homePumpStatusComponentFloor0 = ui_HomePumpStatusComponent_create(ui_tabhome);
+lv_obj_set_x( ui_homePumpStatusComponentFloor0, 0 );
+lv_obj_set_y( ui_homePumpStatusComponentFloor0, -10 );
 
-ui_Label1 = lv_label_create(ui_Panel1);
-lv_obj_set_width( ui_Label1, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Label1, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_align( ui_Label1, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Label1,"27 C");
 
-ui_Panel2 = lv_obj_create(ui_Panel1);
-lv_obj_set_width( ui_Panel2, 20);
-lv_obj_set_height( ui_Panel2, 20);
-lv_obj_set_align( ui_Panel2, LV_ALIGN_CENTER );
-lv_obj_clear_flag( ui_Panel2, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_obj_set_style_radius(ui_Panel2, 20, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_bg_color(ui_Panel2, lv_color_hex(0xECECEC), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_bg_opa(ui_Panel2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+
+ui_homePumpStatusComponentFloor1 = ui_HomePumpStatusComponent_create(ui_tabhome);
+lv_obj_set_x( ui_homePumpStatusComponentFloor1, 0 );
+lv_obj_set_y( ui_homePumpStatusComponentFloor1, -10 );
+
+
+
 
 ui_tabsettings = lv_tabview_add_tab(ui_TabView1, "Settings");
 
-ui_tabmanual = lv_tabview_add_tab(ui_TabView1, "Manual");
+ui_tabmanual = lv_tabview_add_tab(ui_TabView1, "WiFi");
 
+lv_obj_add_event_cb(ui_homePumpStatusComponentFloor0, ui_event_homePumpStatusComponentFloor0_HomePumpStatusComponent, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_homePumpStatusComponentFloor1, ui_event_homePumpStatusComponentFloor1_HomePumpStatusComponent, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_TabView1, ui_event_TabView1, LV_EVENT_ALL, NULL);
 
 }
