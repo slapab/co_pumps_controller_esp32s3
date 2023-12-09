@@ -1,3 +1,4 @@
+#include "core/lv_obj.h"
 #include "extra/widgets/tabview/lv_tabview.h"
 #include "ui.h"
 #include <esp_log.h>
@@ -24,10 +25,12 @@ void floor0ClickedEventImpl(lv_event_t * e)
 {
 	// Your code here
     LOG_PLACE();
+    ESP_LOGI(LOG_TAG, "Is checked? %d", lv_obj_has_state(e->target, LV_STATE_CHECKED));
 }
 
 void floor1ClickedEventImpl(lv_event_t * e)
 {
 	// Your code here
     LOG_PLACE();
+    ESP_LOGI(LOG_TAG, "Is checked? %d", lv_obj_has_state(e->target, LV_STATE_CHECKED));
 }

@@ -5,12 +5,12 @@ SET(UI_SOURCES
     ui.c
     components/ui_comp_hook.c
     ui_helpers.c
-    ./my_ui_events/screen_home_events.c)
+    ./my_ui_events/screen_home_events.cpp)
 
 
 idf_component_register(
     SRCS ${UI_SOURCES}
-    INCLUDE_DIRS "."
+    INCLUDE_DIRS "." "components"
     REQUIRES
     PRIV_REQUIRES lvgl
     )
