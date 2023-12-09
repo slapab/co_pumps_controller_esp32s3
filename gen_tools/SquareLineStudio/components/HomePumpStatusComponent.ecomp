@@ -268,7 +268,7 @@
         {
           "nid": -1718914882,
           "strtype": "LABEL/Text",
-          "strval": "Gora",
+          "strval": "Level",
           "InheritedType": 10
         },
         {
@@ -554,7 +554,7 @@
         {
           "nid": -1928981033,
           "strtype": "LABEL/Text",
-          "strval": "27 C",
+          "strval": "0 °C",
           "InheritedType": 10
         },
         {

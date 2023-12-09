@@ -35,14 +35,14 @@ cui_nameLabel = lv_label_create(cui_HomePumpStatusComponent);
 lv_obj_set_width( cui_nameLabel, LV_SIZE_CONTENT);  /// -415
 lv_obj_set_height( cui_nameLabel, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( cui_nameLabel, LV_ALIGN_CENTER );
-lv_label_set_text(cui_nameLabel,"Gora");
+lv_label_set_text(cui_nameLabel,"Level");
 
 lv_obj_t *cui_tempLabel;
 cui_tempLabel = lv_label_create(cui_HomePumpStatusComponent);
 lv_obj_set_width( cui_tempLabel, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( cui_tempLabel, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( cui_tempLabel, LV_ALIGN_CENTER );
-lv_label_set_text(cui_tempLabel,"27 C");
+lv_label_set_text(cui_tempLabel,"0 °C");
 lv_obj_set_style_text_font(cui_tempLabel, &lv_font_montserrat_24, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 lv_obj_t *cui_statusBar;

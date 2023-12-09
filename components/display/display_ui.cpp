@@ -38,6 +38,8 @@ void DisplayUI::setup_ui()
     /* Set label for floor 0 widget */
     lv_obj_t *obj = ui_comp_get_child(ui_homePumpStatusComponentFloor0, UI_COMP_HOMEPUMPSTATUSCOMPONENT_NAMELABEL);
     lv_label_set_text(obj, "Parter");
+    obj = ui_comp_get_child(ui_homePumpStatusComponentFloor1, UI_COMP_HOMEPUMPSTATUSCOMPONENT_NAMELABEL);
+    lv_label_set_text(obj, "Pietro 1");
 
     /* Set icons for tabs instead of texts */
     static const char* tabs_icons_map[] = {LV_SYMBOL_HOME, LV_SYMBOL_SETTINGS, LV_SYMBOL_WIFI, ""};

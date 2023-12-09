@@ -22,6 +22,7 @@
 #include "esp_netif.h"
 #include "esp_tls.h"
 #include "display_drv.h"
+#include "temperatures_c_export.h"
 
 #if !CONFIG_IDF_TARGET_LINUX
 #include <esp_wifi.h>
@@ -477,6 +478,7 @@ void app_main(void)
 #endif // !CONFIG_IDF_TARGET_LINUX
 
     ESP_ERROR_CHECK(display_drv_init());
+    temperatures_bootstrap();
 
     /* Start the server for the first time */
     // server = start_webserver();
