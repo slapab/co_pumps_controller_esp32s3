@@ -12,5 +12,5 @@ idf_component_register(
     SRCS ${UI_SOURCES}
     INCLUDE_DIRS "." "components"
     REQUIRES
-    PRIV_REQUIRES lvgl
+    PRIV_REQUIRES lvgl controller
     )

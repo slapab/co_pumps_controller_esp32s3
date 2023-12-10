@@ -13,6 +13,7 @@ extern "C" {
 #define CONFIG_LOG_TAG_DISPLAY_UI "disp_ui"
 #define CONFIG_LOG_TAG_TEMPERATURE "temps"
 #define CONFIG_LOG_TAG_PUMPS "pumps"
+#define CONFIG_LOG_TAG_CTRL "ctrl"
 
 
 #define CONFIG_TEMPERATURES_TASK_PRIORITY (tskIDLE_PRIORITY + 1)

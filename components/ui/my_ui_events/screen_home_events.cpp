@@ -1,6 +1,11 @@
-#include "core/lv_obj.h"
-#include "extra/widgets/tabview/lv_tabview.h"
+#include <algorithm>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
 #include "ui.h"
+#pragma GCC diagnostic pop
+
+#include "controller.hpp"
+
 #include <esp_log.h>
 
 #define LOG_TAG "home_scr"
@@ -25,12 +30,16 @@ void floor0ClickedEventImpl(lv_event_t * e)
 {
 	// Your code here
     LOG_PLACE();
-    ESP_LOGI(LOG_TAG, "Is checked? %d", lv_obj_has_state(e->target, LV_STATE_CHECKED));
+    const bool is_checked = lv_obj_has_state(e->target, LV_STATE_CHECKED);
+    ESP_LOGI(LOG_TAG, "Is checked? %d", is_checked);
+    ctrl::ctrl_ground_floor_fsm::dispatch(ctrl::manual_pump_ctrl_evt(is_checked));
 }
 
 void floor1ClickedEventImpl(lv_event_t * e)
 {
 	// Your code here
     LOG_PLACE();
-    ESP_LOGI(LOG_TAG, "Is checked? %d", lv_obj_has_state(e->target, LV_STATE_CHECKED));
+    const bool is_checked = lv_obj_has_state(e->target, LV_STATE_CHECKED);
+    ESP_LOGI(LOG_TAG, "Is checked? %d", is_checked);
+    ctrl::ctrl_floor1_fsm::dispatch(ctrl::manual_pump_ctrl_evt(is_checked));
 }

@@ -7,6 +7,11 @@
 #include "onewire_bus.h"
 #include "ds18b20.h"
 
+enum class temp_sensor_t {
+    GROUND_FLOOR,
+    FLOOR_1
+};
+
 template <uint8_t NUM>
 class temperatures {
 public:
@@ -17,6 +22,7 @@ public:
     esp_err_t enumerate_sensors();
     esp_err_t get_sample();
     uint8_t get_sensors_count() const { return found_sensors_count; }
+    float get_temp(const uint8_t sensor_id) { return temps[sensor_id]; }
 
 protected:
     esp_err_t install_onewire();

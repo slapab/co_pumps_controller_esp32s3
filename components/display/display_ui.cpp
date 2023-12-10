@@ -20,9 +20,13 @@
 #define EXAMPLE_LVGL_TASK_INTERVAL_MS UINT32_C(16)
 
 
-static DisplayUI disp_ui;
-
 static void call_disp_ui_tick();
+
+DisplayUI& DisplayUI::instance()
+{
+    static DisplayUI disp_ui;
+    return disp_ui;
+}
 
 void DisplayUI::init()
 {
@@ -32,23 +36,23 @@ void DisplayUI::init()
 void DisplayUI::tick()
 {
     // TODO
-    static uint32_t stp = 0u;
-    static bool state = false;
-    const uint32_t curr_tp = xTaskGetTickCount();
-    const uint32_t TICK_INTERVAL_MS = 1000u;
+    // static uint32_t stp = 0u;
+    // static bool state = false;
+    // const uint32_t curr_tp = xTaskGetTickCount();
+    // const uint32_t TICK_INTERVAL_MS = 1000u;
 
-    if ((curr_tp - stp) >= pdMS_TO_TICKS(TICK_INTERVAL_MS))
-    {
-        stp = curr_tp;
-        if (state) {
-            pumps::pump_floor1_fsm::dispatch(pumps::off_evt());
-            pumps::pump_ground_floor_fsm::dispatch(pumps::off_evt());
-        } else {
-            pumps::pump_floor1_fsm::dispatch(pumps::on_evt());
-            pumps::pump_ground_floor_fsm::dispatch(pumps::on_evt());
-        }
-        state ^= true;
-    }
+    // if ((curr_tp - stp) >= pdMS_TO_TICKS(TICK_INTERVAL_MS))
+    // {
+    //     stp = curr_tp;
+    //     if (state) {
+    //         pumps::pump_floor1_fsm::dispatch(pumps::off_evt());
+    //         pumps::pump_ground_floor_fsm::dispatch(pumps::off_evt());
+    //     } else {
+    //         pumps::pump_floor1_fsm::dispatch(pumps::on_evt());
+    //         pumps::pump_ground_floor_fsm::dispatch(pumps::on_evt());
+    //     }
+    //     state ^= true;
+    // }
 }
 
 void DisplayUI::setup_ui()
@@ -74,7 +78,7 @@ static void call_disp_ui_tick()
     if ((curr_tp - stp) >= pdMS_TO_TICKS(TICK_INTERVAL_MS))
     {
         stp = curr_tp;
-        disp_ui.tick();
+        DisplayUI::instance().tick();
     }
 }
 
@@ -88,7 +92,7 @@ extern "C" void display_ui_task(void *arg)
     uint32_t t_slicking_tp = UINT32_C(0);
 
     ui_init();
-    disp_ui.init();
+    DisplayUI::instance().init();
 
     while (true) {
         // Lock the mutex due to the LVGL APIs are not thread-safe

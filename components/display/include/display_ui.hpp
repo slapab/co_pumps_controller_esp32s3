@@ -3,6 +3,8 @@
 class DisplayUI
 {
  public:
+   static DisplayUI& instance();
+
    void init();
    void tick();
 

@@ -4,6 +4,7 @@
 #include "ds18b20.h"
 #include "freertos/projdefs.h"
 #include "resource_config.h"
+#include "controller.hpp"
 
 #include <esp_log.h>
 
@@ -127,7 +128,6 @@ static void temperatures_task_impl(void* param)
 {
     (void)param;
 
-    #warning FIXME update to 2 sensors
     temperatures<2u> temps(BSP_ONEWIRE_GPIO_NUM);
 
     esp_err_t err = ESP_ERROR_CHECK_WITHOUT_ABORT(temps.init());
@@ -157,7 +157,9 @@ static void temperatures_task_impl(void* param)
     while (true)
     {
         temps.get_sample();
-        // TODO push event to logic
+        // FIXME temps assigments / magic numbers
+        ctrl::ctrl_ground_floor_fsm::dispatch(ctrl::temp_update_evt(temps.get_temp(0)));
+        ctrl::ctrl_floor1_fsm::dispatch(ctrl::temp_update_evt(temps.get_temp(1)));
         vTaskDelayUntil(&last_time_sample, pdMS_TO_TICKS(CONFIG_TEMPERATURES_UPDATE_INTERVAL_MS));
 
     }

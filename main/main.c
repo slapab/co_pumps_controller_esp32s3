@@ -24,6 +24,7 @@
 #include "display_drv.h"
 #include "temperatures_c_export.h"
 #include "pumps_c_export.h"
+#include "controller_c_export.h"
 
 #if !CONFIG_IDF_TARGET_LINUX
 #include <esp_wifi.h>
@@ -454,6 +455,7 @@ void app_main(void)
 {
     /* Initialize GPIO stuff at the first beginning */
     pumps_bootstrap();
+    controller_bootstrap();
 
     static httpd_handle_t server = NULL;
 
