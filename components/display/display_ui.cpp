@@ -4,6 +4,7 @@
 #include "freertos/projdefs.h"
 #include "freertos/semphr.h"
 #include <freertos/task.h>
+#include "pumps.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
@@ -31,6 +32,23 @@ void DisplayUI::init()
 void DisplayUI::tick()
 {
     // TODO
+    static uint32_t stp = 0u;
+    static bool state = false;
+    const uint32_t curr_tp = xTaskGetTickCount();
+    const uint32_t TICK_INTERVAL_MS = 1000u;
+
+    if ((curr_tp - stp) >= pdMS_TO_TICKS(TICK_INTERVAL_MS))
+    {
+        stp = curr_tp;
+        if (state) {
+            pumps::pump_floor1_fsm::dispatch(pumps::off_evt());
+            pumps::pump_ground_floor_fsm::dispatch(pumps::off_evt());
+        } else {
+            pumps::pump_floor1_fsm::dispatch(pumps::on_evt());
+            pumps::pump_ground_floor_fsm::dispatch(pumps::on_evt());
+        }
+        state ^= true;
+    }
 }
 
 void DisplayUI::setup_ui()

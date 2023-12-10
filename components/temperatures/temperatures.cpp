@@ -157,6 +157,8 @@ static void temperatures_task_impl(void* param)
     while (true)
     {
         temps.get_sample();
+        // TODO push event to logic
         vTaskDelayUntil(&last_time_sample, pdMS_TO_TICKS(CONFIG_TEMPERATURES_UPDATE_INTERVAL_MS));
+
     }
 }

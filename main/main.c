@@ -23,6 +23,7 @@
 #include "esp_tls.h"
 #include "display_drv.h"
 #include "temperatures_c_export.h"
+#include "pumps_c_export.h"
 
 #if !CONFIG_IDF_TARGET_LINUX
 #include <esp_wifi.h>
@@ -451,6 +452,9 @@ static void connect_handler(void* arg, esp_event_base_t event_base,
 
 void app_main(void)
 {
+    /* Initialize GPIO stuff at the first beginning */
+    pumps_bootstrap();
+
     static httpd_handle_t server = NULL;
 
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -476,6 +480,8 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ETHERNET_EVENT_DISCONNECTED, &disconnect_handler, &server));
 #endif // CONFIG_EXAMPLE_CONNECT_ETHERNET
 #endif // !CONFIG_IDF_TARGET_LINUX
+
+
 
     ESP_ERROR_CHECK(display_drv_init());
     temperatures_bootstrap();
