@@ -8,7 +8,7 @@ os.chdir(parent_path)
 
 filelist_path = f"./filelist.txt"
 cmakelists_path = f"./CMakeLists.txt"
-my_ui_events_dir_path = f"./my_ui_events"
+my_ui_events_dir_path = f"./my_ui_events_actions"
 
 # Read files from filelist.txt
 with open(filelist_path, "r") as filelist:
@@ -31,9 +31,14 @@ cmakelists_content += \
 """
 idf_component_register(
     SRCS ${UI_SOURCES}
-    INCLUDE_DIRS \".\" \"components\"
+    INCLUDE_DIRS
+        \".\"
+        \"components\"
+        \"my_ui_events_actions/include\"
     REQUIRES
-    PRIV_REQUIRES lvgl
+    PRIV_REQUIRES
+        lvgl
+        controller
     )
 """
 

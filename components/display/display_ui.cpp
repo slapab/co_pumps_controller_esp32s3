@@ -1,10 +1,15 @@
 #include <stdint.h>
 #include "display_ui.hpp"
 #include <freertos/FreeRTOS.h>
+#include "display_ui_messages.h"
+#include "esp_err.h"
 #include "freertos/projdefs.h"
 #include "freertos/semphr.h"
 #include <freertos/task.h>
 #include "pumps.hpp"
+#include "controller.hpp"
+#include "temperatures.hpp"
+#include "screen_home_events_actions.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
@@ -30,7 +35,22 @@ DisplayUI& DisplayUI::instance()
 
 void DisplayUI::init()
 {
+    /* Create Queue for messages */
+    if (nullptr == msg_q_handle)
+    {
+        msg_q_handle = xQueueCreate(MSQ_Q_LEN, MSG_Q_ITEM_SIZE);
+        if (nullptr == msg_q_handle)
+        {
+            ESP_ERROR_CHECK_WITHOUT_ABORT(ESP_ERR_NO_MEM);
+        }
+    }
+
     setup_ui();
+}
+
+bool DisplayUI::send_msg(const disp_ui_msg_t& msg, const uint32_t timeout_ticks)
+{
+    return pdTRUE == xQueueSend(msg_q_handle, &msg, timeout_ticks);
 }
 
 void DisplayUI::tick()
@@ -53,6 +73,7 @@ void DisplayUI::tick()
     //     }
     //     state ^= true;
     // }
+    process_msg();
 }
 
 void DisplayUI::setup_ui()
@@ -68,6 +89,55 @@ void DisplayUI::setup_ui()
     lv_btnmatrix_set_map(lv_tabview_get_tab_btns(ui_TabView1), tabs_icons_map);
 }
 
+bool DisplayUI::get_msg(disp_ui_msg_t& msg, const uint32_t timeout_ticks)
+{
+    return pdTRUE == xQueueReceive(msg_q_handle, &msg, timeout_ticks);
+}
+
+void DisplayUI::process_msg()
+{
+    disp_ui_msg_t msg = {};
+    if (true == get_msg(msg))
+    {
+        switch (msg.msg_id)
+        {
+            #define X(enum_name, data_name)\
+                case display_ui_msg_id_t::enum_name:\
+                    handle_msg(msg.data_name);
+                    break;
+
+            DISPLAY_UI_MSGS_LIST_X
+            #undef X
+
+            case display_ui_msg_id_t::DISP_UI_MSG_NUM:
+                break;
+        }
+    }
+}
+
+void DisplayUI::handle_msg(const disp_ui_msg_temp_upd_t& msg)
+{
+    bool update_widget = true;
+    /* Call appropriate controller state machines with temp update */
+    switch (static_cast<temp_sensor_t>(msg.temp_sensor_id))
+    {
+        case temp_sensor_t::GROUND_FLOOR:
+            ctrl::ctrl_ground_floor_fsm::dispatch(ctrl::temp_update_evt(msg.temp));
+            break;
+        case temp_sensor_t::FLOOR_1:
+            ctrl::ctrl_floor1_fsm::dispatch(ctrl::temp_update_evt(msg.temp));
+            break;
+        case temp_sensor_t::SENSORS_NUM:
+            /* Note expected. Just for compiler satisfaction */
+            update_widget = false;
+            break;
+    }
+
+    if (true == update_widget)
+    {
+        home_screen_set_temp_value(msg.temp, static_cast<temp_sensor_t>(msg.temp_sensor_id));
+    }
+}
 
 static void call_disp_ui_tick()
 {

@@ -4,7 +4,7 @@
 #include "ds18b20.h"
 #include "freertos/projdefs.h"
 #include "resource_config.h"
-#include "controller.hpp"
+#include "display_ui.hpp"
 
 #include <esp_log.h>
 
@@ -152,14 +152,30 @@ static void temperatures_task_impl(void* param)
         } while (ESP_OK != err);
     }
 
+    disp_ui_msg_t disp_ui_msg = {};
+    disp_ui_msg.msg_id = display_ui_msg_id_t::DISP_UI_MSG_TEMP_UPD;
+    disp_ui_msg_temp_upd_t& temp_upd_msg = disp_ui_msg.msg_temp_upd;
+
     uint32_t last_time_sample = xTaskGetTickCount();
+    constexpr uint32_t POST_UI_MSG_TIMEOUT_TICKS = pdMS_TO_TICKS(200);
     /* Task loop */
     while (true)
     {
-        temps.get_sample();
-        // FIXME temps assigments / magic numbers
-        ctrl::ctrl_ground_floor_fsm::dispatch(ctrl::temp_update_evt(temps.get_temp(0)));
-        ctrl::ctrl_floor1_fsm::dispatch(ctrl::temp_update_evt(temps.get_temp(1)));
+        if (ESP_OK == temps.get_sample())
+        {
+            /* Post an sensors new readings update */
+            temp_upd_msg.temp_sensor_id = static_cast<int>(temp_sensor_t::GROUND_FLOOR);
+            temp_upd_msg.temp = temps.get_temp(temp_sensor_t::GROUND_FLOOR);
+            DisplayUI::instance().send_msg(disp_ui_msg, POST_UI_MSG_TIMEOUT_TICKS);
+
+            temp_upd_msg.temp_sensor_id = static_cast<int>(temp_sensor_t::FLOOR_1);
+            temp_upd_msg.temp = temps.get_temp(temp_sensor_t::FLOOR_1);
+            DisplayUI::instance().send_msg(disp_ui_msg, POST_UI_MSG_TIMEOUT_TICKS);
+        }
+        else
+        {
+            ESP_LOGE(LOG_TAG, "Failed to get sample from temp sensors");
+        }
         vTaskDelayUntil(&last_time_sample, pdMS_TO_TICKS(CONFIG_TEMPERATURES_UPDATE_INTERVAL_MS));
 
     }

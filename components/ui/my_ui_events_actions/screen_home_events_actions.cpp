@@ -1,3 +1,5 @@
+#include "core/lv_obj.h"
+#include "temperatures.hpp"
 #include <algorithm>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
@@ -42,4 +44,27 @@ void floor1ClickedEventImpl(lv_event_t * e)
     const bool is_checked = lv_obj_has_state(e->target, LV_STATE_CHECKED);
     ESP_LOGI(LOG_TAG, "Is checked? %d", is_checked);
     ctrl::ctrl_floor1_fsm::dispatch(ctrl::manual_pump_ctrl_evt(is_checked));
+}
+
+void home_screen_set_temp_value(const float temp, const temp_sensor_t sensor)
+{
+    lv_obj_t* pump_status_comp = nullptr;
+    switch (sensor)
+    {
+        case temp_sensor_t::GROUND_FLOOR:
+            pump_status_comp = ui_homePumpStatusComponentFloor0;
+            break;
+        case temp_sensor_t::FLOOR_1:
+            pump_status_comp = ui_homePumpStatusComponentFloor1;
+            break;
+        case temp_sensor_t::SENSORS_NUM:
+            break;
+    }
+
+    if (nullptr != pump_status_comp)
+    {
+        /* Get label that shows the temp value */
+        lv_obj_t* label = ui_comp_get_child( pump_status_comp, UI_COMP_HOMEPUMPSTATUSCOMPONENT_TEMPLABEL);
+        lv_label_set_text_fmt(label, "%0.1f °C", temp);
+    }
 }
