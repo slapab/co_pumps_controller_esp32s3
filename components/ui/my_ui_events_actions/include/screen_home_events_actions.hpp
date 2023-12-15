@@ -8,3 +8,8 @@
 #include "temperatures.hpp"
 
 void home_screen_set_temp_value(const float temp, const temp_sensor_t sensor);
+
+void home_screen_init_settings_rollers();
+
+void home_screen_set_ground_floor_temp_roller(const uint32_t temp);
+void home_screen_set_floor1_temp_roller(const uint32_t temp);

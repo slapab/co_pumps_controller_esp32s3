@@ -39,6 +39,7 @@ idf_component_register(
     PRIV_REQUIRES
         lvgl
         controller
+        config
     )
 """
 

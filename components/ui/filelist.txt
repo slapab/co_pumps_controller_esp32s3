@@ -1,4 +1,5 @@
 components/ui_comp_homepumpstatuscomponent.c
+components/ui_comp_floorsettingscomponent.c
 components/ui_comp.c
 screens/ui_ScreenHome.c
 ui.c

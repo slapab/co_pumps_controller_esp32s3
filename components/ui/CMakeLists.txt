@@ -1,5 +1,6 @@
 SET(UI_SOURCES
     components/ui_comp_homepumpstatuscomponent.c
+    components/ui_comp_floorsettingscomponent.c
     components/ui_comp.c
     screens/ui_ScreenHome.c
     ui.c
@@ -18,4 +19,5 @@ idf_component_register(
     PRIV_REQUIRES
         lvgl
         controller
+        config
     )

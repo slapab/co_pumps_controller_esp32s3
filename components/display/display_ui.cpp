@@ -10,6 +10,7 @@
 #include "controller.hpp"
 #include "temperatures.hpp"
 #include "screen_home_events_actions.hpp"
+#include "resource_config.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
@@ -87,6 +88,20 @@ void DisplayUI::setup_ui()
     /* Set icons for tabs instead of texts */
     static const char* tabs_icons_map[] = {LV_SYMBOL_HOME, LV_SYMBOL_SETTINGS, LV_SYMBOL_WIFI, ""};
     lv_btnmatrix_set_map(lv_tabview_get_tab_btns(ui_TabView1), tabs_icons_map);
+
+    /* Set Labels for settings tab */
+    obj = ui_comp_get_child(ui_settingsGroundFloor, UI_COMP_FLOORSETTINGSCOMPONENT_LABELFLOORTEMP);
+    lv_label_set_text(obj, "Parter °C");
+    obj = ui_comp_get_child(ui_settingsFloor1, UI_COMP_FLOORSETTINGSCOMPONENT_LABELFLOORTEMP);
+    lv_label_set_text(obj, "Pietro 1 °C");
+
+    /* Initialize rollers in the setting tab. */
+    home_screen_init_settings_rollers();
+
+    /* TODO implement fetching data form NVS */
+    home_screen_set_ground_floor_temp_roller(CONFIG_FLOOR_TEMP_SETTING_DEFAULT);
+    home_screen_set_floor1_temp_roller(CONFIG_FLOOR_TEMP_SETTING_DEFAULT);
+
 }
 
 bool DisplayUI::get_msg(disp_ui_msg_t& msg, const uint32_t timeout_ticks)

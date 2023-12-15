@@ -21,6 +21,11 @@ extern "C" {
 /** Temperatures update interval in milliseconds */
 #define CONFIG_TEMPERATURES_UPDATE_INTERVAL_MS UINT32_C(4000)
 
+/* UI configuration */
+#define CONFIG_FLOOR_TEMP_SETTING_MIN 16u
+#define CONFIG_FLOOR_TEMP_SETTING_MAX 64u
+#define CONFIG_FLOOR_TEMP_SETTING_DEFAULT 32u
+
 
 #ifdef __cplusplus
 }
