@@ -12,7 +12,10 @@
 #include <unistd.h>
 #include <esp_log.h>
 #include <nvs_flash.h>
+#include <nvs.h>
+#include <nvs_flash.h>
 #include <sys/param.h>
+#include "esp_err.h"
 #include "esp_netif.h"
 #include "protocol_examples_common.h"
 #include "protocol_examples_utils.h"
@@ -453,6 +456,21 @@ static void connect_handler(void* arg, esp_event_base_t event_base,
 
 void app_main(void)
 {
+    esp_err_t err = ESP_FAIL;
+    /* Initialize the NVS */
+    err = nvs_flash_init_partition("nvs");
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        /* NVS partition was truncated and needs to be erased */
+        ESP_ERROR_CHECK_WITHOUT_ABORT(nvs_flash_erase());
+        err = nvs_flash_init_partition("nvs");
+    }
+    ESP_ERROR_CHECK_WITHOUT_ABORT(err);
+    if (ESP_OK == err)
+    {
+      printf("NVS initialized\n");
+    }
+
     /* Initialize GPIO stuff at the first beginning */
     pumps_bootstrap();
     controller_bootstrap();

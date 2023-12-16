@@ -7,6 +7,7 @@
 #include "ui.h"
 #pragma GCC diagnostic pop
 
+#include "display_ui.hpp"
 #include "controller.hpp"
 #include "resource_config.h"
 
@@ -18,18 +19,36 @@
 #define LOG_PLACE() ESP_LOGI(LOG_TAG, "%s():%u", __func__, __LINE__)
 
 static void set_temp_roller_value(lv_obj_t* roller, const uint32_t temp_desired, const uint32_t temp_min, const uint32_t temp_max);
+static uint8_t get_temp_from_roller_value(lv_obj_t* roller, const uint32_t temp_min, const uint32_t temp_max);
 
 void onTabChangedEventImpl(lv_event_t * e)
 {
 	// Your code here
-    ESP_LOGI(LOG_TAG, "target %p, current target %p, tab ID %u", e->target, e->current_target, lv_tabview_get_tab_act(ui_TabView1));
     LOG_PLACE();
+    ESP_LOGI(LOG_TAG, "target %p, current target %p, tab ID %u", e->target, e->current_target, lv_tabview_get_tab_act(ui_TabView1));
 
     if (e->target == ui_TabView1) {
-        uint16_t tab_id = lv_tabview_get_tab_act(ui_TabView1);
-        lv_obj_t * btn_matrix = lv_tabview_get_tab_btns(ui_TabView1);
-        const char* btn_text = lv_btnmatrix_get_btn_text(btn_matrix, tab_id);
-        ESP_LOGI(LOG_TAG, "Clicked tab id %u, text: %s", tab_id, btn_text);
+        const uint16_t tab_id = lv_tabview_get_tab_act(e->target);
+        ESP_LOGI(LOG_TAG, "Clicked tab id %u", tab_id);
+        /* Unfortunately the tabview API doesnt provide getting selected tab
+         * address, so need to hardcode by tab index (remember from the UI
+         * design). */
+
+        switch (tab_id) {
+            case 0:
+                /* Home */
+                DisplayUI::instance().event_on_home_tab_entered();
+                break;
+            case 1:
+                /* Settings */
+                break;
+            case 2:
+                /* WiFi */
+                break;
+            default:
+                /* not supported */
+                break;
+        }
     }
 }
 
@@ -138,12 +157,16 @@ void home_screen_set_floor1_temp_roller(const uint32_t temp)
 
 void firstFloorValueTempSettChangedEventImpl(lv_event_t *e)
 {
-    ESP_LOGI(LOG_TAG, "first floor roller value changed %d", lv_roller_get_selected(e->target));
+    const uint8_t temp = get_temp_from_roller_value(e->target, CONFIG_FLOOR_TEMP_SETTING_MIN, CONFIG_FLOOR_TEMP_SETTING_MAX);
+    DisplayUI::instance().event_1st_floor_temp_changed(temp);
+    ESP_LOGI(LOG_TAG, "first floor roller value changed to %u C", temp);
 }
 
 void groundFloorValueTempSettChangedEventImpl(lv_event_t *e)
 {
-    ESP_LOGI(LOG_TAG, "ground floor roller value changed %d", lv_roller_get_selected(e->target));
+    const uint8_t temp = get_temp_from_roller_value(e->target, CONFIG_FLOOR_TEMP_SETTING_MIN, CONFIG_FLOOR_TEMP_SETTING_MAX);
+    DisplayUI::instance().event_gnd_floor_temp_changed(temp);
+    ESP_LOGI(LOG_TAG, "ground floor roller value changed to %u C", temp);
 }
 
 static void set_temp_roller_value(lv_obj_t* roller, const uint32_t temp_desired, const uint32_t temp_min, const uint32_t temp_max)
@@ -155,4 +178,25 @@ static void set_temp_roller_value(lv_obj_t* roller, const uint32_t temp_desired,
         const uint16_t option_idx = temp_desired - temp_min;
         lv_roller_set_selected(roller, option_idx, LV_ANIM_OFF);
     }
+}
+
+static uint8_t get_temp_from_roller_value(lv_obj_t* roller, const uint32_t temp_min, const uint32_t temp_max)
+{
+    uint8_t temp = 20u; /* As default */
+
+    /* Calculate index of desired temp value. If temp is outside of bounds, just abort. */
+    if ((nullptr != roller) && (temp_min < temp_max))
+    {
+        const uint16_t sel_idx = lv_roller_get_selected(roller);
+        /* As index is 0-based, but temp rollers might have first value greater
+         * than zero, then just add the min temp value to the index to obtain a
+         * temp value displayed in the roller. */
+        temp = sel_idx + temp_min;
+    }
+    else
+    {
+        ESP_LOGE(LOG_TAG, "%s(): invalid arguments!", __func__);
+    }
+
+    return temp;
 }

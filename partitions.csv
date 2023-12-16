@@ -1,0 +1,12 @@
+# Name,   Type, SubType,  Offset,   Size,  Flags
+nvs,      data, nvs,      0x9000,  0x6000
+otadata,  data, ota,      0xf000,  0x2000
+# Not used as in menuconfig is disbled. But keeping for feature.
+phy_init, data, phy,      0x11000,  0x1000
+nvs_key,  data, nvs_keys, ,         0x1000
+coredump, data, coredump, ,         64K
+# for UI graphics and storing temps logs
+littlefs, data, spiffs,  ,          2M
+factory,  app,  factory,  ,         3M
+ota_0,    app,  ota_0,    ,         3M
+ota_1,    app,  ota_1,    ,         3M

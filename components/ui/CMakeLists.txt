@@ -17,6 +17,7 @@ idf_component_register(
         "my_ui_events_actions/include"
     REQUIRES
     PRIV_REQUIRES
+        display
         lvgl
         controller
         config
