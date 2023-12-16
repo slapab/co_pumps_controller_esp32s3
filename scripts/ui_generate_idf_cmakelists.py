@@ -40,6 +40,7 @@ idf_component_register(
         lvgl
         controller
         config
+        display
     )
 """
 

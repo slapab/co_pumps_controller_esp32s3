@@ -74,9 +74,11 @@ class DisplayUI
 
    void process_msg();
 
+   void update_ctrl_fsms_settings();
+
   /* Generate the declarations of message handles */
   #define X(enum_name, data_name) \
-      void handle_msg(const disp_ui_##data_name##_t& msg);
+      void handle_msg(const disp_ui_msg_##data_name##_t& msg);
 
   DISPLAY_UI_MSGS_LIST_X
   #undef X

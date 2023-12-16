@@ -1,4 +1,5 @@
 #include "temperatures.hpp"
+#include "widgets/lv_bar.h"
 #include "widgets/lv_roller.h"
 #include <algorithm>
 #include <memory>
@@ -20,6 +21,8 @@
 
 static void set_temp_roller_value(lv_obj_t* roller, const uint32_t temp_desired, const uint32_t temp_min, const uint32_t temp_max);
 static uint8_t get_temp_from_roller_value(lv_obj_t* roller, const uint32_t temp_min, const uint32_t temp_max);
+static void set_statusbar_value(lv_obj_t* statusbar, const uint8_t percentage);
+
 
 void onTabChangedEventImpl(lv_event_t * e)
 {
@@ -155,6 +158,18 @@ void home_screen_set_floor1_temp_roller(const uint32_t temp)
     set_temp_roller_value(roller, temp, CONFIG_FLOOR_TEMP_SETTING_MIN, CONFIG_FLOOR_TEMP_SETTING_MAX);
 }
 
+void home_screen_set_ground_floor_pump_status_progress(const uint8_t percentage)
+{
+    lv_obj_t* statusbar = ui_comp_get_child(ui_homePumpStatusComponentFloor0, UI_COMP_HOMEPUMPSTATUSCOMPONENT_STATUSBAR);
+    set_statusbar_value(statusbar, percentage);
+}
+
+void home_screen_set_floor1_pump_status_progress(const uint8_t percentage)
+{
+    lv_obj_t* statusbar = ui_comp_get_child(ui_homePumpStatusComponentFloor1, UI_COMP_HOMEPUMPSTATUSCOMPONENT_STATUSBAR);
+    set_statusbar_value(statusbar, percentage);
+}
+
 void firstFloorValueTempSettChangedEventImpl(lv_event_t *e)
 {
     const uint8_t temp = get_temp_from_roller_value(e->target, CONFIG_FLOOR_TEMP_SETTING_MIN, CONFIG_FLOOR_TEMP_SETTING_MAX);
@@ -199,4 +214,13 @@ static uint8_t get_temp_from_roller_value(lv_obj_t* roller, const uint32_t temp_
     }
 
     return temp;
+}
+
+static void set_statusbar_value(lv_obj_t* statusbar, const uint8_t percentage)
+{
+    const int32_t min = lv_bar_get_min_value(statusbar);
+    const int32_t max = lv_bar_get_max_value(statusbar);
+
+    int32_t value = ((max - min) * (int32_t)percentage) / 100;
+    lv_bar_set_value(statusbar, value, LV_ANIM_ON);
 }

@@ -13,3 +13,6 @@ void home_screen_init_settings_rollers();
 
 void home_screen_set_ground_floor_temp_roller(const uint32_t temp);
 void home_screen_set_floor1_temp_roller(const uint32_t temp);
+
+void home_screen_set_ground_floor_pump_status_progress(const uint8_t percentage);
+void home_screen_set_floor1_pump_status_progress(const uint8_t percentage);

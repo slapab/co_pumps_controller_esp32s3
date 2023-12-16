@@ -154,7 +154,7 @@ static void temperatures_task_impl(void* param)
 
     disp_ui_msg_t disp_ui_msg = {};
     disp_ui_msg.msg_id = display_ui_msg_id_t::DISP_UI_MSG_TEMP_UPD;
-    disp_ui_msg_temp_upd_t& temp_upd_msg = disp_ui_msg.msg_temp_upd;
+    disp_ui_msg_temp_upd_t& temp_upd_msg = disp_ui_msg.temp_upd;
 
     uint32_t last_time_sample = xTaskGetTickCount();
     constexpr uint32_t POST_UI_MSG_TIMEOUT_TICKS = pdMS_TO_TICKS(200);

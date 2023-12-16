@@ -1,6 +1,8 @@
+#include "display_ui_messages.h"
 #include "resource_config.h"
 #include "controller.hpp"
 #include "pumps.hpp"
+#include "display_ui.hpp"
 
 #include <esp_log.h>
 
@@ -13,7 +15,17 @@ template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
 class manual_state;
 
 template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
-class normal_state;
+class normal_state_off;
+
+/* Static variables definitions */
+template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
+float controller<ID, PUMP_ID>::sett_threshold{30.0f};
+template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
+float controller<ID, PUMP_ID>::activate_threshold{30.0f};
+template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
+float controller<ID, PUMP_ID>::hysteresis{1.0f};
+template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
+float controller<ID, PUMP_ID>::temp{0.0f};
 
 extern "C" void controller_bootstrap(void)
 {
@@ -25,7 +37,8 @@ template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
 void controller<ID, PUMP_ID>::react(const temp_update_evt &e)
 {
     /* Just save temperature as this is a common implementation! */
-    // TODO
+    temp = e.temp;
+
     ESP_LOGD(LOG_TAG, "ctrl[%d] got temp update %0.2f", ID, e.temp);
 }
 
@@ -49,8 +62,21 @@ void controller<ID, PUMP_ID>::react(const manual_pump_ctrl_evt & e)
     }
     else
     {
-        controller<ID, PUMP_ID>::template transit< normal_state<ID, PUMP_ID> >(send_evt_to_pump_action);
+        controller<ID, PUMP_ID>::template transit< normal_state_off<ID, PUMP_ID> >();
     }
+}
+
+template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
+void controller<ID, PUMP_ID>::send_ctrl_state_changed_msg(const bool new_state)
+{
+    const disp_ui_msg_t msg = {
+        .msg_id = DISP_UP_MSG_CTRL_STATE_CHANGED,
+        .ctrl_state_changed = {
+            .ctrl_id = static_cast<int>(ID),
+            .state = new_state
+        }
+    };
+    DisplayUI::instance().send_msg(msg);
 }
 
 template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
@@ -60,7 +86,7 @@ class init_state : public controller<ID, PUMP_ID> {
         // TODO
 
         /* And go to the normal state */
-        controller<ID, PUMP_ID>::template transit<normal_state<ID, PUMP_ID>>();
+        controller<ID, PUMP_ID>::template transit<normal_state_off<ID, PUMP_ID>>();
     }
 
     /* Intentionally override to skip events when not initialized yet. */
@@ -70,23 +96,82 @@ class init_state : public controller<ID, PUMP_ID> {
 };
 
 template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
-class normal_state : public controller<ID, PUMP_ID> {
+class normal_state_on : public controller<ID, PUMP_ID> {
+    using ctrl_t = controller<ID, PUMP_ID>;
+    using pump_fsm = ctrl_t::pump_fsm;
+
+public:
+
+protected:
     void entry() override
     {
-        ESP_LOGD(LOG_TAG, "[%d] entered NORMAL_STATE", ID);
+        ESP_LOGD(LOG_TAG, "[%d] entered NORMAL_ON_STATE", ID);
+        pump_fsm::dispatch(pumps::on_evt());
+
+        /* And change the activate_threshold to the sett threshold plus half of
+         * hysteresis. This activates hysteresis. */
+        ctrl_t::activate_threshold = ctrl_t::sett_threshold + (ctrl_t::hysteresis / 2.0f);
+
+        ctrl_t::send_ctrl_state_changed_msg(true);
     }
 
     void react(const temp_update_evt & e) override
     {
         /* Use base implementation to store the temperature */
-        controller<ID, PUMP_ID>::react(e);
-        // TODO implement logic based on the temp value and thresholds
+        ctrl_t::react(e);
+
+        /* If temperature drops below the sett_threshold switch to the normal off state.
+         * activate threshold to the settings threshold. This effectively means
+         * that hysteresis did its job.  */
+        if (e.temp < ctrl_t::sett_threshold)
+        {
+            ctrl_t::template transit< normal_state_off<ID, PUMP_ID> >();
+        }
+    }
+};
+
+template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
+class normal_state_off : public controller<ID, PUMP_ID> {
+    using ctrl_t = controller<ID, PUMP_ID>;
+    using pump_fsm = ctrl_t::pump_fsm;
+
+public:
+
+protected:
+    void entry() override
+    {
+        ESP_LOGD(LOG_TAG, "[%d] entered NORMAL_OFF_STATE", ID);
+        pump_fsm::dispatch(pumps::off_evt());
+        ctrl_t::send_ctrl_state_changed_msg(false);
+    }
+
+    void react(const temp_update_evt & e) override
+    {
+        /* Use base implementation to store the temperature */
+        ctrl_t::react(e);
+
+        /* If temperature drops below the sett_threshold - hist/2 then update
+         * activate threshold to the settings threshold. This effectively means
+         * that hysteresis did its job.  */
+        if (e.temp <= (ctrl_t::sett_threshold - (ctrl_t::hysteresis / 2.0f)))
+        {
+            ctrl_t::activate_threshold = ctrl_t::sett_threshold;
+        }
+
+        /* Compare temp to the active threshold, if above then change state to the NORMAL_ON */
+        if (e.temp >= ctrl_t::activate_threshold)
+        {
+            ctrl_t::template transit< normal_state_on<ID, PUMP_ID> >();
+        }
     }
 };
 
 template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
 class manual_state : public controller<ID, PUMP_ID>
 {
+public:
+
+protected:
     void entry() override
     {
         ESP_LOGD(LOG_TAG, "[%d] entered MANUAL_STATE", ID);

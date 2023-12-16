@@ -49,8 +49,6 @@ lv_obj_t * ui_HomePumpStatusComponent_create(lv_obj_t * comp_parent)
 
     lv_obj_t * cui_statusBar;
     cui_statusBar = lv_bar_create(cui_HomePumpStatusComponent);
-    lv_bar_set_value(cui_statusBar, 25, LV_ANIM_OFF);
-    lv_bar_set_start_value(cui_statusBar, 0, LV_ANIM_OFF);
     lv_obj_set_height(cui_statusBar, 10);
     lv_obj_set_width(cui_statusBar, lv_pct(100));
     lv_obj_set_align(cui_statusBar, LV_ALIGN_CENTER);

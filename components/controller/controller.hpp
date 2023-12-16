@@ -28,6 +28,15 @@ struct manual_pump_ctrl_evt : public tinyfsm::Event {
 template <ctrl_id_t ID, pumps::pump_id_t PUMP_ID>
 class controller : public tinyfsm::Fsm<controller<ID, PUMP_ID>> {
 public:
+    using ctrl_t = controller<ID, PUMP_ID>;
+
+    static void set_config(const float temp, const float hyst)
+    {
+        hysteresis = hyst;
+        sett_threshold = temp;
+        activate_threshold = temp;
+    }
+
     /** Default reaction for unhandled events */
     void react(tinyfsm::Event const &) { }
 
@@ -42,6 +51,23 @@ public:
 
 protected:
     using pump_fsm = pumps::pump<PUMP_ID>;
+
+    /** Settings: temperature threshold in C deg. Initialized with some safe value. */
+    static float sett_threshold;// = 30.0f;
+    /** Active temperature threshold, it is using to control pump on / off with account to the hysteresis. */
+    static float activate_threshold;// = sett_threshold;
+    /** Temperature hysteresis in C deg. Used to control Pump relay without
+     * bouncing. Initialized with some safe value. */
+    static float hysteresis;// = 2.0f;
+    /** The last temp that was received with temp update event. */
+    static float temp;// = .0f;
+
+    /**
+     * @brief Sends message to the DisplayUI queue.
+     *
+     * @param new_state true = on, false = off
+     */
+    void send_ctrl_state_changed_msg(const bool new_state);
 };
 
 using ctrl_ground_floor_fsm = ctrl::controller<ctrl::CTRL_GROUND_FLOOR, pumps::PUMP_GROUND_FLOOR>;

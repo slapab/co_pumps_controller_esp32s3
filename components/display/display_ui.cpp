@@ -153,12 +153,20 @@ void DisplayUI::init()
     /* Load config from NVS*/
     ESP_ERROR_CHECK_WITHOUT_ABORT(nvs_data.load_from_nvs());
 
+    /* Set config for Controller FSMs */
+    update_ctrl_fsms_settings();
+
     setup_ui();
 }
 
 bool DisplayUI::send_msg(const disp_ui_msg_t& msg, const uint32_t timeout_ticks)
 {
-    return pdTRUE == xQueueSend(msg_q_handle, &msg, timeout_ticks);
+    bool result = false;
+    if (nullptr != msg_q_handle)
+    {
+        result = (pdTRUE == xQueueSend(msg_q_handle, &msg, timeout_ticks));
+    }
+    return result;
 }
 
 void DisplayUI::event_on_home_tab_entered()
@@ -168,30 +176,13 @@ void DisplayUI::event_on_home_tab_entered()
     if (true == nvs_data.is_modified())
     {
         nvs_data.save_to_nvs();
-        // TODO update Controllers FSMs with temp settings
+        /* Update Controllers FSMs with temp settings */
+        update_ctrl_fsms_settings();
     }
 }
 
 void DisplayUI::tick()
 {
-    // TODO
-    // static uint32_t stp = 0u;
-    // static bool state = false;
-    // const uint32_t curr_tp = xTaskGetTickCount();
-    // const uint32_t TICK_INTERVAL_MS = 1000u;
-
-    // if ((curr_tp - stp) >= pdMS_TO_TICKS(TICK_INTERVAL_MS))
-    // {
-    //     stp = curr_tp;
-    //     if (state) {
-    //         pumps::pump_floor1_fsm::dispatch(pumps::off_evt());
-    //         pumps::pump_ground_floor_fsm::dispatch(pumps::off_evt());
-    //     } else {
-    //         pumps::pump_floor1_fsm::dispatch(pumps::on_evt());
-    //         pumps::pump_ground_floor_fsm::dispatch(pumps::on_evt());
-    //     }
-    //     state ^= true;
-    // }
     process_msg();
 }
 
@@ -236,7 +227,7 @@ void DisplayUI::process_msg()
         {
             #define X(enum_name, data_name)\
                 case display_ui_msg_id_t::enum_name:\
-                    handle_msg(msg.data_name);
+                    handle_msg(msg.data_name);\
                     break;
 
             DISPLAY_UI_MSGS_LIST_X
@@ -246,6 +237,13 @@ void DisplayUI::process_msg()
                 break;
         }
     }
+}
+
+void DisplayUI::update_ctrl_fsms_settings()
+{
+    /* Set config for Controller FSMs */
+    ctrl::ctrl_ground_floor_fsm::set_config(nvs_data.get_gnd_floor_temp(), nvs_data.get_temp_hysteresis());
+    ctrl::ctrl_floor1_fsm::set_config(nvs_data.get_1st_floor_temp(), nvs_data.get_temp_hysteresis());
 }
 
 void DisplayUI::handle_msg(const disp_ui_msg_temp_upd_t& msg)
@@ -269,6 +267,20 @@ void DisplayUI::handle_msg(const disp_ui_msg_temp_upd_t& msg)
     if (true == update_widget)
     {
         home_screen_set_temp_value(msg.temp, static_cast<temp_sensor_t>(msg.temp_sensor_id));
+    }
+}
+
+void DisplayUI::handle_msg(const disp_ui_msg_ctrl_state_changed_t& msg)
+{
+    const uint8_t percentage = (true == msg.state) ? 100u : 0u;
+    switch (static_cast<ctrl::ctrl_id_t>(msg.ctrl_id))
+    {
+        case ctrl::CTRL_GROUND_FLOOR:
+            home_screen_set_ground_floor_pump_status_progress(percentage);
+            break;
+        case ctrl::CTRL_FLOOR_1:
+            home_screen_set_floor1_pump_status_progress(percentage);
+            break;
     }
 }
 

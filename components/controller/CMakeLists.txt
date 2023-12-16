@@ -4,5 +4,5 @@ idf_component_register(
                        INCLUDE_DIRS "."
                        PRIV_INCLUDE_DIRS "priv_include"
                        REQUIRES tinyfsm temperatures pumps
-                       PRIV_REQUIRES config
+                       PRIV_REQUIRES config display
                        )
