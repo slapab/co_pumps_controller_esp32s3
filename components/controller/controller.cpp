@@ -101,7 +101,6 @@ class normal_state_on : public controller<ID, PUMP_ID> {
     using pump_fsm = ctrl_t::pump_fsm;
 
 public:
-
 protected:
     void entry() override
     {

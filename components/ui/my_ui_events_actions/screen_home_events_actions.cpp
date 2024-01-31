@@ -19,25 +19,33 @@
 
 #define LOG_PLACE() ESP_LOGI(LOG_TAG, "%s():%u", __func__, __LINE__)
 
-static void set_temp_roller_value(lv_obj_t* roller, const uint32_t temp_desired, const uint32_t temp_min, const uint32_t temp_max);
-static uint8_t get_temp_from_roller_value(lv_obj_t* roller, const uint32_t temp_min, const uint32_t temp_max);
-static void set_statusbar_value(lv_obj_t* statusbar, const uint8_t percentage);
+static void set_temp_roller_value(lv_obj_t *roller,
+                                  const uint32_t temp_desired,
+                                  const uint32_t temp_min,
+                                  const uint32_t temp_max);
+static uint8_t get_temp_from_roller_value(lv_obj_t *roller, const uint32_t temp_min, const uint32_t temp_max);
+static void set_statusbar_value(lv_obj_t *statusbar, const uint8_t percentage);
 
-
-void onTabChangedEventImpl(lv_event_t * e)
+void onTabChangedEventImpl(lv_event_t *e)
 {
-	// Your code here
+    // Your code here
     LOG_PLACE();
-    ESP_LOGI(LOG_TAG, "target %p, current target %p, tab ID %u", e->target, e->current_target, lv_tabview_get_tab_act(ui_TabView1));
+    ESP_LOGI(LOG_TAG,
+             "target %p, current target %p, tab ID %u",
+             e->target,
+             e->current_target,
+             lv_tabview_get_tab_act(ui_TabView1));
 
-    if (e->target == ui_TabView1) {
+    if (e->target == ui_TabView1)
+    {
         const uint16_t tab_id = lv_tabview_get_tab_act(e->target);
         ESP_LOGI(LOG_TAG, "Clicked tab id %u", tab_id);
         /* Unfortunately the tabview API doesnt provide getting selected tab
          * address, so need to hardcode by tab index (remember from the UI
          * design). */
 
-        switch (tab_id) {
+        switch (tab_id)
+        {
             case 0:
                 /* Home */
                 DisplayUI::instance().event_on_home_tab_entered();

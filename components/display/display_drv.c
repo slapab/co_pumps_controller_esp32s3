@@ -64,11 +64,13 @@
 static void config_lcd_bl();
 static void example_init_i80_bus(esp_lcd_panel_io_handle_t *io_handle, void *user_ctx);
 static void example_init_lcd_panel(esp_lcd_panel_io_handle_t io_handle, esp_lcd_panel_handle_t *panel);
-static void init_lvgl_touch_device(lv_disp_t* lvgl_disp, esp_lcd_touch_handle_t touch_handle);
-static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx);
-static void my_disp_flush_lvgl_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p);
+static void init_lvgl_touch_device(lv_disp_t *lvgl_disp, esp_lcd_touch_handle_t touch_handle);
+static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io,
+                                            esp_lcd_panel_io_event_data_t *edata,
+                                            void *user_ctx);
+static void my_disp_flush_lvgl_cb(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
 static void lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data);
-static void example_increase_lvgl_tick(void* arg);
+static void example_increase_lvgl_tick(void *arg);
 // static void example_lvgl_port_task(void *arg);
 
 /* Contains internal graphic buffer(s) called draw buffer(s) */
@@ -85,10 +87,10 @@ static TaskHandle_t lvgl_task = NULL;
 static uint16_t bitmap[20*20];
 #endif
 
-
-esp_err_t display_drv_init(void) {
-    #warning "FIXME"
-    esp_err_t err = ESP_OK;  // FIXME
+esp_err_t display_drv_init(void)
+{
+#warning "FIXME"
+    esp_err_t err = ESP_OK; // FIXME
 
     config_lcd_bl();
 
@@ -105,7 +107,7 @@ esp_err_t display_drv_init(void) {
     gpio_set_level(EXAMPLE_PIN_NUM_BK_LIGHT, EXAMPLE_LCD_BK_LIGHT_ON_LEVEL);
 
     esp_lcd_touch_handle_t touch_handle = NULL;
-    err = ESP_ERROR_CHECK_WITHOUT_ABORT(touch_drv_init(&touch_handle));
+    err                                 = ESP_ERROR_CHECK_WITHOUT_ABORT(touch_drv_init(&touch_handle));
 #if 0
     for (uint32_t idx = 0u; idx < sizeof(bitmap) / sizeof(bitmap[0]); ++idx) {
         if (idx < (sizeof(bitmap) / sizeof(bitmap[0]) / 2)) {
@@ -123,7 +125,8 @@ esp_err_t display_drv_init(void) {
 
     // alloc draw buffers used by LVGL. We have got a lot of memory so allocate for the whole screen
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-    uint32_t malloc_flags = (MALLOC_CAP_32BIT | MALLOC_CAP_SPIRAM);  /* or use MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA instead of MALLOC_CAP_SPIRAM */
+    uint32_t malloc_flags = (MALLOC_CAP_32BIT | MALLOC_CAP_SPIRAM); /* or use MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA
+                                                                       instead of MALLOC_CAP_SPIRAM */
     size_t buff_size = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * sizeof(lv_color_t) / 5u;
     lv_color_t *buf1 = (lv_color_t *)heap_caps_malloc(buff_size, malloc_flags);
     lv_color_t *buf2 = (lv_color_t *)heap_caps_malloc(buff_size, malloc_flags);
@@ -137,38 +140,42 @@ esp_err_t display_drv_init(void) {
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = EXAMPLE_LCD_H_RES;
-    disp_drv.ver_res = EXAMPLE_LCD_V_RES;
-    disp_drv.flush_cb = my_disp_flush_lvgl_cb;
-    disp_drv.draw_buf = &disp_buf;
+    disp_drv.hor_res   = EXAMPLE_LCD_H_RES;
+    disp_drv.ver_res   = EXAMPLE_LCD_V_RES;
+    disp_drv.flush_cb  = my_disp_flush_lvgl_cb;
+    disp_drv.draw_buf  = &disp_buf;
     disp_drv.user_data = panel_handle;
-    lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
+    lv_disp_t *disp    = lv_disp_drv_register(&disp_drv);
 
     init_lvgl_touch_device(disp, touch_handle);
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
     esp_timer_create_args_t lvgl_tick_timer_args = {};
-    lvgl_tick_timer_args.callback = &example_increase_lvgl_tick;
-    lvgl_tick_timer_args.dispatch_method = ESP_TIMER_TASK;
-    lvgl_tick_timer_args.name = "lvgl_tick";
+    lvgl_tick_timer_args.callback                = &example_increase_lvgl_tick;
+    lvgl_tick_timer_args.dispatch_method         = ESP_TIMER_TASK;
+    lvgl_tick_timer_args.name                    = "lvgl_tick";
 
     esp_timer_handle_t lvgl_tick_timer = NULL;
     err = ESP_ERROR_CHECK_WITHOUT_ABORT(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    err = ESP_ERROR_CHECK_WITHOUT_ABORT(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * UINT64_C(1000)));
+    err = ESP_ERROR_CHECK_WITHOUT_ABORT(
+        esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * UINT64_C(1000)));
 
     /* Create the LVGL task. */
-    if (ESP_OK == err) {
-        xTaskCreate(display_ui_task, "LVGL-UI", EXAMPLE_LVGL_TASK_STACK_SIZE, disp, EXAMPLE_LVGL_TASK_PRIORITY, &lvgl_task);
+    if (ESP_OK == err)
+    {
+        xTaskCreate(
+            display_ui_task, "LVGL-UI", EXAMPLE_LVGL_TASK_STACK_SIZE, disp, EXAMPLE_LVGL_TASK_PRIORITY, &lvgl_task);
     }
 
     return err;
 }
 
-static void config_lcd_bl() {
+static void config_lcd_bl()
+{
     gpio_config_t bk_gpio_config = {};
-    bk_gpio_config.pin_bit_mask = 1ULL << EXAMPLE_PIN_NUM_BK_LIGHT;
-    bk_gpio_config.mode = GPIO_MODE_OUTPUT;
+    bk_gpio_config.pin_bit_mask  = 1ULL << EXAMPLE_PIN_NUM_BK_LIGHT;
+    bk_gpio_config.mode          = GPIO_MODE_OUTPUT;
 
     ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&bk_gpio_config));
 
@@ -231,9 +238,10 @@ static void example_init_i80_bus(esp_lcd_panel_io_handle_t *io_handle, void *use
     gpio_set_level(EXAMPLE_PIN_NUM_RD, 1);
 }
 
-static void example_init_lcd_panel(esp_lcd_panel_io_handle_t io_handle, esp_lcd_panel_handle_t *panel) {
+static void example_init_lcd_panel(esp_lcd_panel_io_handle_t io_handle, esp_lcd_panel_handle_t *panel)
+{
     esp_lcd_panel_handle_t panel_handle = NULL;
-// #if CONFIG_EXAMPLE_LCD_I80_CONTROLLER_ST7789
+    // #if CONFIG_EXAMPLE_LCD_I80_CONTROLLER_ST7789
     ESP_LOGI(TAG, "Install LCD driver of st7789");
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_RST,
@@ -260,12 +268,13 @@ static void example_init_lcd_panel(esp_lcd_panel_io_handle_t io_handle, esp_lcd_
     *panel = panel_handle;
 }
 
-static void init_lvgl_touch_device(lv_disp_t* lvgl_disp, esp_lcd_touch_handle_t touch_handle) {
+static void init_lvgl_touch_device(lv_disp_t *lvgl_disp, esp_lcd_touch_handle_t touch_handle)
+{
     lv_indev_drv_init(&indev_drv);
     /* Input device driver (Touch) */
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.disp = lvgl_disp;
-    indev_drv.read_cb = lvgl_touch_cb;
+    indev_drv.type      = LV_INDEV_TYPE_POINTER;
+    indev_drv.disp      = lvgl_disp;
+    indev_drv.read_cb   = lvgl_touch_cb;
     indev_drv.user_data = touch_handle;
     lv_indev_drv_register(&indev_drv);
 }
@@ -278,34 +287,39 @@ static bool example_notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, 
     return false;
 }
 
-static void my_disp_flush_lvgl_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p)
+static void my_disp_flush_lvgl_cb(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t)disp->user_data;
-    int offsetx1 = area->x1;
-    int offsetx2 = area->x2;
-    int offsety1 = area->y1;
-    int offsety2 = area->y2;
+    int offsetx1                        = area->x1;
+    int offsetx2                        = area->x2;
+    int offsety1                        = area->y1;
+    int offsety2                        = area->y2;
     // copy a buffer's content to a specific area of the display, note that + 1
     // for end x and y are because end x y are not included according to the API
     // doc.
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_p);
 }
 
-static void lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
-    lv_point_t point = {0};
+static void lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
+{
+    lv_point_t point = { 0 };
 
     /* Read touch controller data */
     bool touchpad_pressed = touch_drv_read(&point.x, &point.y);
 
-    if (true == touchpad_pressed) {
+    if (true == touchpad_pressed)
+    {
         data->point = point;
         data->state = LV_INDEV_STATE_PRESSED;
-    } else {
+    }
+    else
+    {
         data->state = LV_INDEV_STATE_RELEASED;
     }
 }
 
-static void example_increase_lvgl_tick(void* arg) {
+static void example_increase_lvgl_tick(void *arg)
+{
     (void)arg;
     /* Tell LVGL how many milliseconds has elapsed */
     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);

@@ -446,8 +446,9 @@ static void disconnect_handler(void* arg, esp_event_base_t event_base,
 static void connect_handler(void* arg, esp_event_base_t event_base,
                             int32_t event_id, void* event_data)
 {
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server == NULL) {
+    httpd_handle_t *server = (httpd_handle_t *)arg;
+    if (*server == NULL)
+    {
         ESP_LOGI(TAG, "Starting webserver");
         *server = start_webserver();
     }
@@ -501,15 +502,14 @@ void app_main(void)
 #endif // CONFIG_EXAMPLE_CONNECT_ETHERNET
 #endif // !CONFIG_IDF_TARGET_LINUX
 
-
-
     ESP_ERROR_CHECK(display_drv_init());
     temperatures_bootstrap();
 
     /* Start the server for the first time */
     // server = start_webserver();
 
-    while (server) {
+    while (server)
+    {
         sleep(5);
     }
 }

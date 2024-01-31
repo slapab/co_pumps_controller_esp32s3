@@ -23,8 +23,9 @@ esp_err_t temperatures<NUM>::init() {
     return err;
 }
 
-template <uint8_t NUM>
-esp_err_t temperatures<NUM>::enumerate_sensors() {
+template<uint8_t NUM>
+esp_err_t temperatures<NUM>::enumerate_sensors()
+{
     esp_err_t err = ESP_ERR_NOT_FOUND;
 
     found_sensors_count = 0u;
@@ -37,17 +38,25 @@ esp_err_t temperatures<NUM>::enumerate_sensors() {
     if (ESP_OK == err)
     {
         ESP_LOGI(LOG_TAG, "Device iterator created, start searching...");
-        do {
+        do
+        {
             err = onewire_device_iter_get_next(iter, &next_onewire_device);
-            if (ESP_OK == err) {
+            if (ESP_OK == err)
+            {
                 /* Found a new device, let's check if we can upgrade it to a DS18B20 */
                 ds18b20_config_t ds_cfg = {};
                 /* Check if the device is a DS18B20, if so, return the ds18b20 handle */
-                if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &ds18b20s[found_sensors_count]) == ESP_OK) {
-                    ESP_LOGI(LOG_TAG, "Found a DS18B20[%d], address: %016llX", found_sensors_count, next_onewire_device.address);
+                if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &ds18b20s[found_sensors_count]) == ESP_OK)
+                {
+                    ESP_LOGI(LOG_TAG,
+                             "Found a DS18B20[%d], address: %016llX",
+                             found_sensors_count,
+                             next_onewire_device.address);
                     ds18b20s_addrs[found_sensors_count] = next_onewire_device.address;
                     ++found_sensors_count;
-                } else {
+                }
+                else
+                {
                     ESP_LOGI(LOG_TAG, "Found an unknown device, address: %016llX", next_onewire_device.address);
                 }
             }
@@ -62,10 +71,13 @@ esp_err_t temperatures<NUM>::enumerate_sensors() {
         if (found_sensors_count >= NUM)
         {
             err = ESP_OK;
-        } else if (0u == found_sensors_count)
+        }
+        else if (0u == found_sensors_count)
         {
             err = ESP_ERR_NOT_FOUND;
-        } else {
+        }
+        else
+        {
             err = ESP_FAIL;
         }
     }
@@ -73,8 +85,9 @@ esp_err_t temperatures<NUM>::enumerate_sensors() {
     return err;
 }
 
-template <uint8_t NUM>
-esp_err_t temperatures<NUM>::get_sample() {
+template<uint8_t NUM>
+esp_err_t temperatures<NUM>::get_sample()
+{
     bool fail = false;
     for (uint8_t idx = 0u; idx < NUM; ++idx)
     {
@@ -100,63 +113,69 @@ esp_err_t temperatures<NUM>::get_sample() {
     return (false == fail) ? ESP_OK : ESP_FAIL;
 }
 
-template <uint8_t NUM>
-esp_err_t temperatures<NUM>::install_onewire() {
+template<uint8_t NUM>
+esp_err_t temperatures<NUM>::install_onewire()
+{
     // install 1-wire bus
     onewire_bus_config_t bus_config = {
         .bus_gpio_num = gpio_num,
     };
-    onewire_bus_rmt_config_t rmt_config = {
-        .max_rx_bytes = ONEWIRE_MAX_RX_BYTES
-    };
+    onewire_bus_rmt_config_t rmt_config = { .max_rx_bytes = ONEWIRE_MAX_RX_BYTES };
 
-    return ESP_ERROR_CHECK_WITHOUT_ABORT(
-        onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
+    return ESP_ERROR_CHECK_WITHOUT_ABORT(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
 }
 
-extern "C" void temperatures_bootstrap(void) {
+extern "C" void temperatures_bootstrap(void)
+{
     /* Create temperatures module task. */
-    if (pdPASS != xTaskCreate(temperatures_task_impl, "temps_task",
-                                CONFIG_TEMPERATURES_TASK_DEPTH_BYTES, NULL,
-                                CONFIG_TEMPERATURES_TASK_PRIORITY, NULL))
+    if (pdPASS
+        != xTaskCreate(temperatures_task_impl,
+                       "temps_task",
+                       CONFIG_TEMPERATURES_TASK_DEPTH_BYTES,
+                       NULL,
+                       CONFIG_TEMPERATURES_TASK_PRIORITY,
+                       NULL))
     {
         ESP_LOGE(LOG_TAG, "Failed to create a temperatures task!");
     }
 }
 
-static void temperatures_task_impl(void* param)
+static void temperatures_task_impl(void *param)
 {
     (void)param;
 
     temperatures<2u> temps(BSP_ONEWIRE_GPIO_NUM);
 
     esp_err_t err = ESP_ERROR_CHECK_WITHOUT_ABORT(temps.init());
-    if (ESP_OK != err) {
+    if (ESP_OK != err)
+    {
         ESP_LOGE(LOG_TAG, "Failed to initialize one wire transport for temp sensors");
         vTaskDelete(NULL);
     }
 
     if (ESP_OK == err)
     {
-        do {
+        do
+        {
             err = ESP_ERROR_CHECK_WITHOUT_ABORT(temps.enumerate_sensors());
 
             if (ESP_OK == err)
             {
                 ESP_LOGI(LOG_TAG, "Temperatures task started");
             }
-            else {
+            else
+            {
                 /* Retry after 3seconds */
                 vTaskDelay(pdMS_TO_TICKS(3000u));
             }
         } while (ESP_OK != err);
     }
 
-    disp_ui_msg_t disp_ui_msg = {};
-    disp_ui_msg.msg_id = display_ui_msg_id_t::DISP_UI_MSG_TEMP_UPD;
-    disp_ui_msg_temp_upd_t& temp_upd_msg = disp_ui_msg.temp_upd;
+    disp_ui_msg_t disp_ui_msg            = {};
+    disp_ui_msg.msg_id                   = display_ui_msg_id_t::DISP_UI_MSG_TEMP_UPD;
+    disp_ui_msg_temp_upd_t &temp_upd_msg = disp_ui_msg.temp_upd;
 
-    uint32_t last_time_sample = xTaskGetTickCount();
+    uint32_t last_time_sample                    = xTaskGetTickCount();
     constexpr uint32_t POST_UI_MSG_TIMEOUT_TICKS = pdMS_TO_TICKS(200);
     /* Task loop */
     while (true)
@@ -165,11 +184,11 @@ static void temperatures_task_impl(void* param)
         {
             /* Post an sensors new readings update */
             temp_upd_msg.temp_sensor_id = static_cast<int>(temp_sensor_t::GROUND_FLOOR);
-            temp_upd_msg.temp = temps.get_temp(temp_sensor_t::GROUND_FLOOR);
+            temp_upd_msg.temp           = temps.get_temp(temp_sensor_t::GROUND_FLOOR);
             DisplayUI::instance().send_msg(disp_ui_msg, POST_UI_MSG_TIMEOUT_TICKS);
 
             temp_upd_msg.temp_sensor_id = static_cast<int>(temp_sensor_t::FLOOR_1);
-            temp_upd_msg.temp = temps.get_temp(temp_sensor_t::FLOOR_1);
+            temp_upd_msg.temp           = temps.get_temp(temp_sensor_t::FLOOR_1);
             DisplayUI::instance().send_msg(disp_ui_msg, POST_UI_MSG_TIMEOUT_TICKS);
         }
         else
@@ -177,6 +196,5 @@ static void temperatures_task_impl(void* param)
             ESP_LOGE(LOG_TAG, "Failed to get sample from temp sensors");
         }
         vTaskDelayUntil(&last_time_sample, pdMS_TO_TICKS(CONFIG_TEMPERATURES_UPDATE_INTERVAL_MS));
-
     }
 }

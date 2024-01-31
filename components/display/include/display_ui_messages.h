@@ -19,7 +19,8 @@ extern "C" {
     X(DISP_UI_MSG_TEMP_UPD, temp_upd)\
     X(DISP_UP_MSG_CTRL_STATE_CHANGED, ctrl_state_changed)
 
-enum display_ui_msg_id_t {
+enum display_ui_msg_id_t
+    {
     #define X(enum_name, data_name) enum_name,
     DISPLAY_UI_MSGS_LIST_X
     #undef X
@@ -27,7 +28,8 @@ enum display_ui_msg_id_t {
     DISP_UI_MSG_NUM
 };
 
-struct display_ui_msg_base_t {
+struct display_ui_msg_base_t
+{
     display_ui_msg_id_t msg_id;
 };
 
@@ -45,10 +47,12 @@ struct disp_ui_msg_ctrl_state_changed_t
 };
 
 /* Helper type to define the maximum size for command. Required to define a queue's item size. */
-struct disp_ui_msg_t {
+struct disp_ui_msg_t
+{
     display_ui_msg_id_t msg_id;
 
-    union {
+    union
+    {
         #define X(enum_name, data_name) disp_ui_msg_##data_name##_t data_name;
         DISPLAY_UI_MSGS_LIST_X
         #undef X
