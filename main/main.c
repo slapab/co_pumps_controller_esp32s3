@@ -15,8 +15,10 @@
 #include <nvs.h>
 #include <nvs_flash.h>
 #include <sys/param.h>
+#include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_netif.h"
+#include "freertos/projdefs.h"
 #include "protocol_examples_common.h"
 #include "protocol_examples_utils.h"
 #include "esp_tls_crypto.h"
@@ -28,6 +30,7 @@
 #include "temperatures_c_export.h"
 #include "pumps_c_export.h"
 #include "controller_c_export.h"
+#include "bsp.h"
 
 #if !CONFIG_IDF_TARGET_LINUX
 #include <esp_wifi.h>
@@ -455,6 +458,29 @@ static void connect_handler(void* arg, esp_event_base_t event_base,
 }
 #endif // !CONFIG_IDF_TARGET_LINUX
 
+/**
+ * @brief Enables 3V3 for the Display.
+ * This is required when powered from the battery socket to power up the display.
+ */
+static void pwr_en(void)
+{
+    //zero-initialize the config structure.
+    gpio_config_t io_conf = {};
+    //disable interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    //set as output mode
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO18/19
+    io_conf.pin_bit_mask = (UINT32_C(1) << BSP_PWR_EN_PIN_NUM);
+    //disable pull-down mode
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    //disable pull-up mode
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    //configure GPIO with the given settings
+    ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&io_conf));
+    gpio_set_level(BSP_PWR_EN_PIN_NUM, 1);
+}
+
 void app_main(void)
 {
     esp_err_t err = ESP_FAIL;
@@ -473,6 +499,10 @@ void app_main(void)
     {
       printf("NVS initialized\n");
     }
+
+    /* Enable power for the display */
+    pwr_en();
+    vTaskDelay(pdMS_TO_TICKS(5u));
 
     /* Initialize GPIO stuff at the first beginning */
     pumps_bootstrap();

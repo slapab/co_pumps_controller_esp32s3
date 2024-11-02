@@ -29,6 +29,8 @@ extern "C" {
 #define BSP_TOUCH_PIN_NUM_INT              GPIO_NUM_16
 #define BSP_TOUCH_PIN_NUM_RST              GPIO_NUM_21
 
+#define BSP_PWR_EN_PIN_NUM                 GPIO_NUM_15
+
 #endif
 
 #ifdef __cplusplus
